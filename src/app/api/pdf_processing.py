@@ -10,10 +10,10 @@ from langchain_community.vectorstores import FAISS
 from langchain_community.llms import HuggingFaceHub
 from dotenv import load_dotenv
 
-app = FastAPI()
+
 load_dotenv()
 
-HUGGINGFACEHUB_API_TOKEN = os.getenv("HUGGINGFACEHUB_API_TOKEN")
+HUGGINGFACEHUB_API_TOKEN = 'hf_GqLFyJUadtBcHhJGUuYmlsCBOyPVidGliYe'
 
 huggingface_embeddings = HuggingFaceBgeEmbeddings(
     model_name="BAAI/bge-small-en-v1.5",
@@ -30,8 +30,7 @@ hf = HuggingFaceHub(
 vectorstore = None 
 
 
-@app.post("/upload-pdf/")
-async def upload_pdf(file: UploadFile = File(...)):
+def upload_pdf(file: UploadFile = File(...)):
     global vectorstore
     file_location = f"./PDF/{file.filename}"
     os.makedirs("PDF", exist_ok=True)
@@ -52,7 +51,7 @@ async def upload_pdf(file: UploadFile = File(...)):
     return JSONResponse(content={"message": "PDF uploaded and processed successfully."})
 
 
-@app.post("/ask-question/")
+
 async def ask_question(query: str = Form(...)):
     global vectorstore
 
