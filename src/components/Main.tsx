@@ -1,4 +1,5 @@
 'use client'
+import axios from 'axios';
 import React, { useState } from 'react'
 
 function Main() {
@@ -12,7 +13,11 @@ function Main() {
         }
         try {
             setLoading(true);
-            setAnswer("jawab agya")
+             let res=await axios.post('/api/get-answer',{query:question})
+             console.log(res)
+             setAnswer(res.data.answer);
+             setQuestion('');
+             
         } catch (error) {
              setAnswer("An Error Occured")         
         }finally{

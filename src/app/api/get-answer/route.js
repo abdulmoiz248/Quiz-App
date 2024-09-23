@@ -1,20 +1,32 @@
-import { exec } from 'child_process';
+import { NextResponse } from 'next/server';
 
-export default async function handler(req, res) {
-    const { query } = req.query;
-
+export async function POST(req) {
+    const { query } = await req.json();
+    console.log("Query",query);
     if (!query) {
-        return res.status(400).json({ error: "Query parameter is required." });
+        return NextResponse.json({ error: "Query parameter is required." }, { status: 400 });
     }
 
-    // Run Python script to ask a question
-    exec(`python ask_question.py "${query}"`, (error, stdout, stderr) => {
-        if (error) {
-            console.error(`Error: ${stderr}`);
-            return res.status(500).json({ error: 'Python script failed.' });
+    try {
+               
+        const pythonServerUrl = 'http://localhost:8000/ask-question/';
+        const formData = new FormData();
+        formData.append('query', query);
+
+        const response = await fetch(pythonServerUrl, {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            throw new Error(`HTTP error! status: ${response.status}`);
         }
 
-        // Send back the result from the Python script
-        return res.status(200).json(JSON.parse(stdout));
-    });
+        const result = await response.json();
+        return NextResponse.json(result);
+
+    } catch (error) {
+        console.error('Error processing question:', error);
+        return NextResponse.json({ error: "Error processing question" }, { status: 500 });
+    }
 }

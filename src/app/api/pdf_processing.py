@@ -10,7 +10,7 @@ from langchain_community.vectorstores import FAISS
 from langchain_community.llms import HuggingFaceHub
 from dotenv import load_dotenv
 
-
+app = FastAPI()
 load_dotenv()
 
 HUGGINGFACEHUB_API_TOKEN = 'hf_GqLFyJUadtBcHhJGUuYmlsCBOyPVidGliYe'
@@ -30,7 +30,8 @@ hf = HuggingFaceHub(
 vectorstore = None 
 
 
-def upload_pdf(file: UploadFile = File(...)):
+@app.post("/upload-pdf/")
+async def upload_pdf(file: UploadFile = File(...)):
     global vectorstore
     file_location = f"./PDF/{file.filename}"
     os.makedirs("PDF", exist_ok=True)
@@ -50,24 +51,27 @@ def upload_pdf(file: UploadFile = File(...)):
 
     return JSONResponse(content={"message": "PDF uploaded and processed successfully."})
 
-
-
+@app.post("/ask-question/")
 async def ask_question(query: str = Form(...)):
     global vectorstore
 
     if vectorstore is None:
         return JSONResponse(content={"error": "Please upload a PDF first."}, status_code=400)
 
-    relevant_documents = vectorstore.similarity_search(query)
-    
-    if not relevant_documents:
-        return JSONResponse(content={"answer": "No relevant documents found."})
+    try:
+        relevant_documents = vectorstore.similarity_search(query)
 
-    context = relevant_documents[0].page_content
-    response = hf.invoke(f"Context: {context}\nQuestion: {query}")
+        if not relevant_documents:
+            return JSONResponse(content={"answer": "No relevant documents found."})
 
-    return JSONResponse(content={"answer": response})
+        context = relevant_documents[0].page_content
+        response = hf.invoke(f"Context: {context}\nQuestion: {query}")
 
+        return JSONResponse(content={"answer": response})
+
+    except Exception as e:
+        print(f"Error during Hugging Face API call: {e}")  # Log the error
+        return JSONResponse(content={"error": "Failed to get a response from the model."}, status_code=500)
 
 if __name__ == "__main__":
     import uvicorn
