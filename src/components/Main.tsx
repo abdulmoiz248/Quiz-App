@@ -16,7 +16,7 @@ function Main() {
              let res=await axios.post('/api/get-answer',{query:question})
              console.log(res)
              setAnswer(res.data.answer);
-             setQuestion('');
+             //setQuestion('');
              
         } catch (error) {
              setAnswer("An Error Occured")         
