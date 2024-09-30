@@ -28,10 +28,15 @@ export default function Modal({ open, setOpen }: { open: boolean, setOpen: (open
         setLoading(true);
         const formData = new FormData();
         selectedFiles.forEach(file => {
-          formData.append('file', file);  // Ensure this matches the backend parameter
+          formData.append('files', file);  // use 'files' as the key, which matches the backend
         });
-
-        const res = await axios.post('/api/upload-pdf', formData)
+        
+        const pythonServerUrl = 'http://localhost:8000/upload-pdf/';
+        const res = await axios.post(pythonServerUrl, formData, {
+          headers: {
+            'Content-Type': 'multipart/form-data',
+          },
+        });
         
         console.log('Response from server:', res.data);
         setOpen(false);
